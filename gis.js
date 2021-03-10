@@ -130,10 +130,10 @@
 
     }
 
-    const POINTSTextData = await (await fetch('gis-moscow-map/data/Base.ep')).text()
+    const POINTSTextData = await (await fetch('data/Base.ep')).text()
     const POINTS = parseToArrayOfObject(POINTSTextData)
 
-    const LINESTextData = await (await fetch('gis-moscow-map/data/Base.svdb')).text()
+    const LINESTextData = await (await fetch('data/Base.svdb')).text()
     const LINES = parseToArrayOfObject(LINESTextData)
 
     const canvas = document.getElementById("canvas")
