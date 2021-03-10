@@ -5,15 +5,15 @@
         constructor(ctx){
             this.ctx = ctx
             this.scale = 0.05
-            this.topOffset = 40000
+            this.topOffset = 40500
 
             this.roadTypesColor = {
-                1: "#D1D1D1",
-                2: "#C5C5C4",
-                3: "#FFF7B8",
-                4: "#FFE294",
-                5: "#FFD080",
-                6: "green"
+                0: "#C5C5C4",
+                1: "#FFF7B8",
+                2: "#FFE294",
+                3: "#FFD080",
+                3: "#FFE294",
+                5: "#FFD080"
             }
 
         }
@@ -36,8 +36,9 @@
             this.ctx.moveTo(x1, y1);  
             this.ctx.lineTo(x2, y2);  
             this.ctx.strokeStyle = this.roadTypesColor[type];
-            this.ctx.lineWidth = 1*(type/2);
+            this.ctx.lineWidth = 1*(type/1.5);
             this.ctx.stroke();  
+            this.ctx.closePath();
         }
 
         //[{x,y}, {x,y}]
@@ -61,17 +62,19 @@
             if(type === 3){
                 this.ctx.lineTo(this.scale*arrOfPoints[0].x, this.scale*(this.topOffset-arrOfPoints[0].y));
                 this.ctx.fillStyle = color;
-                this.ctx.closePath();
+                //this.ctx.closePath();
                 this.ctx.fill();
-                this.ctx.stroke(); 
+                //this.ctx.stroke(); 
             }
 
             if(type === 2){
                 this.ctx.strokeStyle = color;
                 this.ctx.lineWidth = 0.5
-                this.ctx.closePath();
+                //this.ctx.closePath();
                 this.ctx.stroke(); 
             }
+
+            this.ctx.closePath();
             
 
 
@@ -212,9 +215,9 @@
     const draw = new Draw(ctx)
 
     drawLines(POINTS, LINES)
-    drawContours(GREENZONES, CONTOURS, '#50c878')
-    drawContours(WATER, CONTOURS, '#0095b6')
-    drawContours(BUILDINGS, CONTOURS, '#FFFAFA')
+    drawContours(GREENZONES, CONTOURS, '#D4F2BB')
+    drawContours(WATER, CONTOURS, '#B8DFF5')
+    drawContours(BUILDINGS, CONTOURS, '#F6F6F3')
     drawContours(RAILWAYS, CONTOURS, '#696969')
 
 })()
