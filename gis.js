@@ -193,6 +193,8 @@
     const GREENZONESTextData = await (await fetch('data/Зеленая зона.elyr')).text()
     const GREENZONES = parseToArrayOfObject(GREENZONESTextData)
 
+    console.log(GREENZONES)
+
     const WATERTextData = await (await fetch('data/Реки и водоемы.elyr')).text()
     const WATER = parseToArrayOfObject(WATERTextData)
 
