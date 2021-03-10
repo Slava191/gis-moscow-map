@@ -1,0 +1,7 @@
+Файлы:
+Base.ep - узлы и координаты модели (IdPoint	X	Y)
+Base.epts - координаты отрисовки линии (IdPoints	IdNum	X	Y)
+Base.esv - узлы связи и идентификатор на координаты линии отрисовки (IdPoint1	IdPoint2	IdPoints)
+Base.tls - описание узла (TypeRoad	Length	MaxStream)
+
+Base.svdb - совмещение файлов (Base.esv + Base.tls) (IdPoint1	IdPoint2	IdPoints	TypeRoad		Length	MaxStream)
