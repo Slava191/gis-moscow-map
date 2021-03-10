@@ -80,34 +80,6 @@
     }
 
 
-    function parseToArrayOfArray(content, linesOffset = 0, tabsOffset = 0){
-
-        const points = []
-
-        const lines = content.split('\n');
-        const linesLength = lines.length
-
-        for(let line = linesOffset; line < linesLength; line++){
-
-            const tabs = lines[line].split('\t');
-            const tabsLength = tabs.length
-
-            const point = []
-
-            for(let tab = tabsOffset; tab < tabsLength; tab++){
-                
-                point.push(Number(tabs[tab]))
-
-            }
-
-            points.push(point)
-            
-        }
-
-        return points
-
-    }
-
     function parseToArrayOfObject(data){
         
         const lines = data.split('\n');
@@ -205,7 +177,6 @@
         }
 
     }
-
 
 
     const POINTSTextData = await (await fetch('data/Base.ep')).text()
