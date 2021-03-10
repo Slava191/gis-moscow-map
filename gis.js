@@ -41,7 +41,12 @@
         }
 
         //[{x,y}, {x,y}]
-        polyline(arrOfPoints, color){
+        polyline(arrOfPoints, color, type){
+
+            if(type===1 || !arrOfPoints){
+                console.log(type)
+                return
+            }
 
             this.ctx.beginPath();
             
@@ -50,13 +55,25 @@
             for(let i = 1; i < arrOfPoints.length-1; i++){
                 this.ctx.lineTo(this.scale*arrOfPoints[i].x, this.scale*(this.topOffset-arrOfPoints[i].y));
             }
- 
-            this.ctx.lineTo(this.scale*arrOfPoints[0].x, this.scale*(this.topOffset-arrOfPoints[0].y));
 
-            this.ctx.fillStyle = color;
-            this.ctx.closePath();
-            this.ctx.fill();
-            this.ctx.stroke(); 
+            
+            
+            if(type === 3){
+                this.ctx.lineTo(this.scale*arrOfPoints[0].x, this.scale*(this.topOffset-arrOfPoints[0].y));
+                this.ctx.fillStyle = color;
+                this.ctx.closePath();
+                this.ctx.fill();
+                this.ctx.stroke(); 
+            }
+
+            if(type === 2){
+                this.ctx.strokeStyle = color;
+                this.ctx.lineWidth = 0.5
+                this.ctx.closePath();
+                this.ctx.stroke(); 
+            }
+            
+
 
         }
 
@@ -183,7 +200,7 @@
 
             const contour = CONTOURS[TYPEOFCONTOURS[i].IdPoints]
 
-            draw.polyline(contour, color)
+            draw.polyline(contour, color, TYPEOFCONTOURS[i].IdType)
 
         }
 
@@ -200,12 +217,19 @@
     const CONTOURSTextData = await (await fetch('data/Base.epts')).text()
     const CONTOURS = reduceContour(parseToArrayOfObject(CONTOURSTextData))
 
+    //IdType 1 - точка, 2 - линиия, 3 - контур
+
     const GREENZONESTextData = await (await fetch('data/Зеленая зона.elyr')).text()
     const GREENZONES = parseToArrayOfObject(GREENZONESTextData)
 
     const WATERTextData = await (await fetch('data/Реки и водоемы.elyr')).text()
     const WATER = parseToArrayOfObject(WATERTextData)
 
+    const BUILDINGSTextData = await (await fetch('data/Жилая застройка.elyr')).text()
+    const BUILDINGS = parseToArrayOfObject(BUILDINGSTextData)
+
+    const RAILWAYSTextData = await (await fetch('data/Железные дороги.elyr')).text()
+    const RAILWAYS = parseToArrayOfObject(RAILWAYSTextData)
 
     const canvas = document.getElementById("canvas")
     canvas.width  = 1800;
@@ -217,5 +241,7 @@
     drawLines(POINTS, LINES)
     drawContours(GREENZONES, CONTOURS, '#50c878')
     drawContours(WATER, CONTOURS, '#0095b6')
+    drawContours(BUILDINGS, CONTOURS, '#FFFAFA')
+    drawContours(RAILWAYS, CONTOURS, '#696969')
 
 })()
