@@ -12,7 +12,8 @@
                 2: "#C5C5C4",
                 3: "#FFF7B8",
                 4: "#FFE294",
-                5: "#FFD080"
+                5: "#FFD080",
+                6: "green"
             }
 
         }
@@ -37,6 +38,26 @@
             this.ctx.strokeStyle = this.roadTypesColor[type];
             this.ctx.lineWidth = 1*(type/2);
             this.ctx.stroke();  
+        }
+
+        //[{x,y}, {x,y}]
+        polyline(arrOfPoints, color){
+
+            this.ctx.beginPath();
+            
+            this.ctx.moveTo(this.scale*arrOfPoints[0].x, this.scale*(this.topOffset-arrOfPoints[0].y)); 
+
+            for(let i = 1; i < arrOfPoints.length-1; i++){
+                this.ctx.lineTo(this.scale*arrOfPoints[i].x, this.scale*(this.topOffset-arrOfPoints[i].y));
+            }
+ 
+            this.ctx.lineTo(this.scale*arrOfPoints[0].x, this.scale*(this.topOffset-arrOfPoints[0].y));
+
+            this.ctx.fillStyle = color;
+            this.ctx.closePath();
+            this.ctx.fill();
+            this.ctx.stroke(); 
+
         }
 
     }
@@ -103,10 +124,34 @@
 
         }
 
-        // console.log(objStruct)
-        console.log(arrOfObj)
-
         return arrOfObj
+
+    }
+
+    function reduceContour(CONTOURS){
+
+        const myContours = [null]
+
+        const CONTOURSLength = CONTOURS.length
+    
+        let currentContour = []
+        let lastIdPoints = 1
+    
+        for(let i = 1; i < CONTOURSLength; i++){
+    
+            if(CONTOURS[i].IdPoints === lastIdPoints){
+                currentContour.push({x: CONTOURS[i].x, y: CONTOURS[i]["y\r"]})
+            }else{
+                myContours.push([...currentContour])
+                currentContour = []
+                currentContour.push({x: CONTOURS[i].x, y: CONTOURS[i]["y\r"]})
+            }
+    
+            lastIdPoints = CONTOURS[i].IdPoints
+    
+        }
+
+        return myContours
 
     }
 
@@ -130,11 +175,37 @@
 
     }
 
+    function drawContours(TYPEOFCONTOURS, CONTOURS, color){
+
+        const TYPEOFCONTOURSLength = TYPEOFCONTOURS.length
+
+        for(let i = 1; i < TYPEOFCONTOURSLength; i++){
+
+            const contour = CONTOURS[TYPEOFCONTOURS[i].IdPoints]
+
+            draw.polyline(contour, color)
+
+        }
+
+    }
+
+
+
     const POINTSTextData = await (await fetch('data/Base.ep')).text()
     const POINTS = parseToArrayOfObject(POINTSTextData)
 
     const LINESTextData = await (await fetch('data/Base.svdb')).text()
     const LINES = parseToArrayOfObject(LINESTextData)
+
+    const CONTOURSTextData = await (await fetch('data/Base.epts')).text()
+    const CONTOURS = reduceContour(parseToArrayOfObject(CONTOURSTextData))
+
+    const GREENZONESTextData = await (await fetch('data/Зеленая зона.elyr')).text()
+    const GREENZONES = parseToArrayOfObject(GREENZONESTextData)
+
+    const WATERTextData = await (await fetch('data/Реки и водоемы.elyr')).text()
+    const WATER = parseToArrayOfObject(WATERTextData)
+
 
     const canvas = document.getElementById("canvas")
     canvas.width  = 1800;
@@ -144,5 +215,7 @@
     const draw = new Draw(ctx)
 
     drawLines(POINTS, LINES)
+    drawContours(GREENZONES, CONTOURS, '#50c878')
+    drawContours(WATER, CONTOURS, '#0095b6')
 
 })()
