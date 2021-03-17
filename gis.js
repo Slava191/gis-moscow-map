@@ -188,6 +188,8 @@
     const LINESTextData = await (await fetch('data/Base.svdb')).text()
     const LINES = parseToArrayOfObject(LINESTextData)
 
+    console.log(LINES)
+
     const CONTOURSTextData = await (await fetch('data/Base.epts')).text()
     const CONTOURS = reduceContour(parseToArrayOfObject(CONTOURSTextData))
 
@@ -195,8 +197,6 @@
 
     const GREENZONESTextData = await (await fetch('data/Зеленая зона.elyr')).text()
     const GREENZONES = parseToArrayOfObject(GREENZONESTextData)
-
-    console.log(GREENZONES)
 
     const WATERTextData = await (await fetch('data/Реки и водоемы.elyr')).text()
     const WATER = parseToArrayOfObject(WATERTextData)
@@ -219,5 +219,9 @@
     drawContours(WATER, CONTOURS, '#B8DFF5')
     drawContours(BUILDINGS, CONTOURS, '#F6F6F3')
     drawContours(RAILWAYS, CONTOURS, '#696969')
+
+    //Библиотека для поиска пути на взешенном графе
+    //https://habr.com/ru/post/338440/
+
 
 })()
