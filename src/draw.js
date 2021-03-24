@@ -51,13 +51,13 @@ module.exports = class {
         
         this.ctx.moveTo(this.scale*arrOfPoints[0].x, this.scale*(this.topOffset-arrOfPoints[0].y)); 
 
-        for(let i = 1; i < arrOfPoints.length-1; i++){
-            this.ctx.lineTo(this.scale*arrOfPoints[i].x, this.scale*(this.topOffset-arrOfPoints[i].y));
-        }
-
-        
         
         if(type === 3){
+
+            for(let i = 1; i < arrOfPoints.length-1; i++){
+                this.ctx.lineTo(this.scale*arrOfPoints[i].x, this.scale*(this.topOffset-arrOfPoints[i].y));
+            }
+
             this.ctx.lineTo(this.scale*arrOfPoints[0].x, this.scale*(this.topOffset-arrOfPoints[0].y));
             this.ctx.fillStyle = color;
             //this.ctx.closePath();
@@ -66,8 +66,13 @@ module.exports = class {
         }
 
         if(type === 2){
+
+            for(let i = 1; i < arrOfPoints.length; i++){
+                this.ctx.lineTo(this.scale*arrOfPoints[i].x, this.scale*(this.topOffset-arrOfPoints[i].y));
+            }
+
             this.ctx.strokeStyle = color;
-            this.ctx.lineWidth = 0.5
+            this.ctx.lineWidth = 1
             //this.ctx.closePath();
             this.ctx.stroke(); 
         }

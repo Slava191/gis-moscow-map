@@ -101,7 +101,9 @@ function drawContours(TYPEOFCONTOURS, CONTOURS, color){
 
         const contour = CONTOURS[TYPEOFCONTOURS[i].IdPoints]
 
-        draw.polyline(contour, color, TYPEOFCONTOURS[i].IdType)
+        const contourType = TYPEOFCONTOURS[i].IdType || 2
+
+        draw.polyline(contour, color, contourType)
 
     }
 
@@ -133,25 +135,24 @@ const start = async () => {
     const RAILWAYSTextData = await (await fetch('data/Железные дороги.elyr')).text()
     const RAILWAYS = parseToArrayOfObject(RAILWAYSTextData)
 
-    drawLines(POINTS, LINES)
+    
     drawContours(GREENZONES, CONTOURS, '#D4F2BB')
     drawContours(WATER, CONTOURS, '#B8DFF5')
     drawContours(BUILDINGS, CONTOURS, '#F6F6F3')
     drawContours(RAILWAYS, CONTOURS, '#696969')
+    
+
+    //drawLines(POINTS, LINES)
+    drawContours(LINES, CONTOURS, '#696969')
 
     //Библиотека для поиска пути на взешенном графе
     //https://habr.com/ru/post/338440/
 
     let graph = createGraph();
 
-    graph.addLink('x', 'd', {weight: 20});
-    graph.addLink('x', 'a', {weight: 5});
-    graph.addLink('x', 'y', {weight: 600});
-    graph.addLink('d', 'e', {weight: 60});
-    graph.addLink('e', 'y', {weight: 20});
-    graph.addLink('a', 'b', {weight: 40});
-    graph.addLink('b', 'c', {weight: 60});
-    graph.addLink('c', 'y', {weight: 5});
+    for(let i = 1; i < LINES.length; i++){
+        graph.addLink(LINES[i].IdPoint1, LINES[i].IdPoint2, { weight: LINES[i].Length, line: LINES[i] });
+    }
 
     var pathFinder = aStar(graph, {
         distance(a, b, link) {
@@ -160,24 +161,47 @@ const start = async () => {
     });
 
 
-    let path = pathFinder.find('x', 'y');
+    let path = pathFinder.find('1', '400');
     path.reverse();
 
     let wayLength = 0;
     let pathString = path[0].id;
+    let pathArray = [path[0].id]
+
+
+    const firstPathLine = graph.getNode(path[1].id).links.find(link => link.toId === graph.getNode(path[0].id).id).data.line
+    let pathLines = [firstPathLine]
 
     for(let i = 0; i < path.length-1; i++){
         const currentNode = path[i]
         const nextNode = path[i+1]
 
-        const lengthToNextNode = currentNode.links.find(link => link.toId === nextNode.id).data.weight
+        const currentNodeAndNextNodeData = currentNode.links.find(link => link.toId === nextNode.id).data
+
+        const lengthToNextNode = currentNodeAndNextNodeData.weight
+
+        //console.log(currentNode.links.)
 
         wayLength += lengthToNextNode 
         pathString += ` -> ${nextNode.id}`
+
+        pathLines.push(currentNodeAndNextNodeData.line)
+        
+        pathArray.push(nextNode.id)
+
+        // draw.line(
+        //     POINTS[currentNode.id].X, 
+        //     POINTS[currentNode.id].Y, 
+        //     POINTS[nextNode.id].X, 
+        //     POINTS[nextNode.id].Y, 
+        //     6
+        // )
     }
 
+    console.log(pathLines)
+    drawContours(pathLines, CONTOURS, 'red')
 
-    console.log("Путь:", pathString, "Длина:", wayLength)
+    console.log("Путь:", pathString, pathArray, "Длина:", wayLength)
 
 }
 
