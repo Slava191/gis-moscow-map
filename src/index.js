@@ -1,4 +1,6 @@
 const Draw = require('./draw.js')
+const createGraph = require('ngraph.graph');
+const aStar = require('./a-star/a-star.js')
 
 const canvas = document.getElementById("canvas")
 canvas.width  = 1800;
@@ -139,6 +141,43 @@ const start = async () => {
 
     //Библиотека для поиска пути на взешенном графе
     //https://habr.com/ru/post/338440/
+
+    let graph = createGraph();
+
+    graph.addLink('x', 'd', {weight: 20});
+    graph.addLink('x', 'a', {weight: 5});
+    graph.addLink('x', 'y', {weight: 600});
+    graph.addLink('d', 'e', {weight: 60});
+    graph.addLink('e', 'y', {weight: 20});
+    graph.addLink('a', 'b', {weight: 40});
+    graph.addLink('b', 'c', {weight: 60});
+    graph.addLink('c', 'y', {weight: 5});
+
+    var pathFinder = aStar(graph, {
+        distance(a, b, link) {
+        return link.data.weight;
+        }
+    });
+
+
+    let path = pathFinder.find('x', 'y');
+    path.reverse();
+
+    let wayLength = 0;
+    let pathString = path[0].id;
+
+    for(let i = 0; i < path.length-1; i++){
+        const currentNode = path[i]
+        const nextNode = path[i+1]
+
+        const lengthToNextNode = currentNode.links.find(link => link.toId === nextNode.id).data.weight
+
+        wayLength += lengthToNextNode 
+        pathString += ` -> ${nextNode.id}`
+    }
+
+
+    console.log("Путь:", pathString, "Длина:", wayLength)
 
 }
 

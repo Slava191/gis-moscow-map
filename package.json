@@ -4,12 +4,13 @@
   "description": "",
   "main": "index.html",
   "dependencies": {
+    "ngraph.graph": "^18.0.0",
     "webpack": "^5.27.2",
     "webpack-cli": "^4.5.0"
   },
   "devDependencies": {},
   "scripts": {
-    "build-browsefiry":"browserify src/index.js -o dist/main.bundle.js",
+    "build-browsefiry": "browserify src/index.js -o dist/main.bundle.js",
     "build-webpack": "webpack",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
