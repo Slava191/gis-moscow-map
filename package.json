@@ -1,0 +1,26 @@
+{
+  "name": "gis-moscow-map",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.html",
+  "dependencies": {
+    "webpack": "^5.27.2",
+    "webpack-cli": "^4.5.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "build-browsefiry":"browserify src/index.js -o dist/main.bundle.js",
+    "build-webpack": "webpack",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Slava191/gis-moscow-map.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Slava191/gis-moscow-map/issues"
+  },
+  "homepage": "https://github.com/Slava191/gis-moscow-map#readme"
+}
