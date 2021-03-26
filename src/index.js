@@ -4,11 +4,12 @@ const aStar = require('./a-star/a-star.js')
 
 const canvas = document.getElementById("canvas")
 canvas.width  = 1800;
-canvas.height = 3000;
+canvas.height = 2000;
 const ctx = canvas.getContext("2d");
 
-const draw = new Draw(ctx)
+const draw = new Draw(ctx, { scale: 0.05, topOffset: 40500 })
 
+//Создаем массив объектов из текстовой структуры
 function parseToArrayOfObject(data){
         
     const lines = data.split('\n');
@@ -46,6 +47,7 @@ function parseToArrayOfObject(data){
 
 }
 
+//Формируем контуры
 function reduceContour(CONTOURS){
 
     const myContours = [null]
@@ -73,27 +75,8 @@ function reduceContour(CONTOURS){
 
 }
 
-function drawLines(POINTS, LINES){
-
-    const LINESLength = LINES.length
-
-    for(let i = 1; i < LINESLength; i++){
-
-        const line = LINES[i]
-
-        draw.line(
-            POINTS[line.IdPoint1].X, 
-            POINTS[line.IdPoint1].Y, 
-            POINTS[line.IdPoint2].X, 
-            POINTS[line.IdPoint2].Y, 
-            line.TypeRoad
-        )
-
-    }
-
-}
-
-function drawContours(TYPEOFCONTOURS, CONTOURS, color){
+//Отрисовка контуров
+function drawContours(TYPEOFCONTOURS, CONTOURS, color, bgcolor = undefined, lineWidth = 1){
 
     const TYPEOFCONTOURSLength = TYPEOFCONTOURS.length
 
@@ -103,7 +86,7 @@ function drawContours(TYPEOFCONTOURS, CONTOURS, color){
 
         const contourType = TYPEOFCONTOURS[i].IdType || 2
 
-        draw.polyline(contour, color, contourType)
+        draw.polyline(contour, color, contourType, bgcolor, lineWidth)
 
     }
 
@@ -111,6 +94,8 @@ function drawContours(TYPEOFCONTOURS, CONTOURS, color){
 
 
 const start = async () => {
+
+    //Получаем данные
 
     const POINTSTextData = await (await fetch('data/Base.ep')).text()
     const POINTS = parseToArrayOfObject(POINTSTextData)
@@ -120,8 +105,6 @@ const start = async () => {
 
     const CONTOURSTextData = await (await fetch('data/Base.epts')).text()
     const CONTOURS = reduceContour(parseToArrayOfObject(CONTOURSTextData))
-
-    //IdType 1 - точка, 2 - линиия, 3 - контур
 
     const GREENZONESTextData = await (await fetch('data/Зеленая зона.elyr')).text()
     const GREENZONES = parseToArrayOfObject(GREENZONESTextData)
@@ -136,72 +119,147 @@ const start = async () => {
     const RAILWAYS = parseToArrayOfObject(RAILWAYSTextData)
 
     
-    drawContours(GREENZONES, CONTOURS, '#D4F2BB')
+    drawContours(GREENZONES, CONTOURS, '#CAE5B3', '#D4F2BB')
     drawContours(WATER, CONTOURS, '#B8DFF5')
-    drawContours(BUILDINGS, CONTOURS, '#F6F6F3')
-    drawContours(RAILWAYS, CONTOURS, '#696969')
-    
-
-    //drawLines(POINTS, LINES)
-    drawContours(LINES, CONTOURS, '#696969')
+    drawContours(BUILDINGS, CONTOURS, '#E8E8E5', '#F6F6F3')
+    drawContours(RAILWAYS, CONTOURS, '#7C6657', '#7C6657', 0.5)
+    drawContours(LINES, CONTOURS, '#696969', '#696969', 1)
 
     //Библиотека для поиска пути на взешенном графе
     //https://habr.com/ru/post/338440/
 
     let graph = createGraph();
 
-    for(let i = 1; i < LINES.length; i++){
+    for(let i = 1; i < LINES.length; i++)
         graph.addLink(LINES[i].IdPoint1, LINES[i].IdPoint2, { weight: LINES[i].Length, line: LINES[i] });
-    }
-
-    var pathFinder = aStar(graph, {
-        distance(a, b, link) {
-        return link.data.weight;
-        }
+    
+    const pathFinder = aStar(graph, {
+        distance(a, b, link) { return link.data.weight }
     });
 
-
-    let path = pathFinder.find('1', '400');
-    path.reverse();
-
-    let wayLength = 0;
-    let pathString = path[0].id;
-    let pathArray = [path[0].id]
+    //FIXME: Широкое поле для рефаторинга)))
 
 
-    const firstPathLine = graph.getNode(path[1].id).links.find(link => link.toId === graph.getNode(path[0].id).id).data.line
-    let pathLines = [firstPathLine]
+    const buildWay = (pointOneId, pointTwoId) => {
 
-    for(let i = 0; i < path.length-1; i++){
-        const currentNode = path[i]
-        const nextNode = path[i+1]
+        let path = pathFinder.find(pointOneId, pointTwoId);
+        path.reverse();
 
-        const currentNodeAndNextNodeData = currentNode.links.find(link => link.toId === nextNode.id).data
+        let wayLength = 0;
+        let pathString = path[0].id;
+        let pathArray = [path[0].id]
+        let firstPathLine = null
 
-        const lengthToNextNode = currentNodeAndNextNodeData.weight
+        try{
+            firstPathLine = graph.getNode(path[1].id).links.find(link => link.toId === graph.getNode(path[0].id).id || link.fromId === graph.getNode(path[0].id).id).data.line
+            
+        }catch(e){
+            console.log("Ошибка тут")
+        }
 
-        //console.log(currentNode.links.)
+        let pathLines = [firstPathLine]
 
-        wayLength += lengthToNextNode 
-        pathString += ` -> ${nextNode.id}`
+        for(let i = 0; i < path.length-1; i++){
+            const currentNode = path[i]
+            const nextNode = path[i+1]
 
-        pathLines.push(currentNodeAndNextNodeData.line)
-        
-        pathArray.push(nextNode.id)
+            let currentNodeAndNextNodeData
+            
+            try{
+                currentNodeAndNextNodeData = currentNode.links.find(link => link.toId === nextNode.id || link.fromId === nextNode.id).data
+            }catch(e){
+                console.log("Ошибка тут", currentNode, nextNode)
+            }
 
-        // draw.line(
-        //     POINTS[currentNode.id].X, 
-        //     POINTS[currentNode.id].Y, 
-        //     POINTS[nextNode.id].X, 
-        //     POINTS[nextNode.id].Y, 
-        //     6
-        // )
+            const lengthToNextNode = currentNodeAndNextNodeData.weight
+
+            //console.log(currentNode.links.)
+
+            wayLength += lengthToNextNode 
+            pathString += ` -> ${nextNode.id}`
+
+            pathLines.push(currentNodeAndNextNodeData.line)
+            
+            pathArray.push(nextNode.id)
+
+        }
+
+        drawContours(pathLines, CONTOURS, 'red', 'red', 2)
+        console.log("Путь:", pathString, pathArray, "Длина:", wayLength)
+
     }
 
-    console.log(pathLines)
-    drawContours(pathLines, CONTOURS, 'red')
+    let pointOneId = undefined, 
+        pointTwoId = undefined, 
+        buildWayMode = false
 
-    console.log("Путь:", pathString, pathArray, "Длина:", wayLength)
+    const buildWayButton = document.getElementById("build-way")
+    buildWayButton.addEventListener("click", function(e){
+        buildWayMode = true
+    })
+
+    canvas.addEventListener("mouseover", function(e) {
+
+        if(buildWayMode){
+            document.body.style.cursor = 'crosshair'
+        }else{
+            document.body.style.cursor = 'grab'
+        }
+
+    })
+
+    canvas.addEventListener("click", function(e) {
+
+        
+
+        if(buildWayMode){
+
+            const rect = e.target.getBoundingClientRect();
+
+            const mousePosX = (e.clientX-rect.left)/0.05; 
+            const mousePosY = (40500-((e.clientY-rect.top)/0.05)) ;
+
+            let minLength = 100000
+            let findedPoint = null
+
+            for(let i = 1; i < POINTS.length; i++){
+
+                const lengthBetwenPoints = Math.sqrt(Math.pow((POINTS[i].X - mousePosX), 2) + Math.pow((POINTS[i].Y - mousePosY),2))
+
+                if(lengthBetwenPoints <= minLength){
+                    findedPoint = POINTS[i]
+                    minLength = lengthBetwenPoints
+                }
+
+            }
+
+            console.log(mousePosX, mousePosY)
+            console.log(findedPoint)
+
+            draw.point(findedPoint.X, findedPoint.Y)
+    
+            if(!pointOneId && !pointTwoId){
+
+                pointOneId = findedPoint.IdPoint
+                
+            }else if(pointOneId && !pointTwoId){
+
+                pointTwoId = findedPoint.IdPoint
+
+                console.log("Строю маршрут между ", pointOneId, " и ", pointTwoId)
+                buildWay(pointOneId, pointTwoId)
+
+                pointOneId = undefined
+                pointTwoId = undefined
+                buildWayMode = false
+                document.body.style.cursor = 'grab'
+
+            }
+
+        }
+
+    })
+
 
 }
 
