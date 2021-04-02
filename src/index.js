@@ -3,12 +3,26 @@ const createGraph = require('ngraph.graph');
 const aStar = require('./a-star/a-star.js')
 
 const canvas = document.getElementById("canvas")
-canvas.width  = 1800;
-canvas.height = 2000;
+canvas.width  = window.innerWidth;
+canvas.height = window.innerHeight
 const ctx = canvas.getContext("2d");
 
-const draw = new Draw(ctx, { scale: 0.05, topOffset: 40500 })
+let POINTS = undefined,
+    LINES  = undefined,
+    CONTOURS = undefined,
+    GREENZONES = undefined,
+    WATER = undefined,
+    BUILDINGS = undefined,
+    RAILWAYS = undefined
 
+let SCALE = 0.07, 
+    TOPOFFSET = 30000, 
+    LEFTOFFSET = 0
+
+let draw;
+
+//let draw = new Draw(ctx, { scale: 0.05, topOffset: 40500 })
+    
 //Создаем массив объектов из текстовой структуры
 function parseToArrayOfObject(data){
         
@@ -92,38 +106,170 @@ function drawContours(TYPEOFCONTOURS, CONTOURS, color, bgcolor = undefined, line
 
 }
 
+const setGlobalData = async () => {
 
-const start = async () => {
+        //Получаем данные
 
-    //Получаем данные
-
-    const POINTSTextData = await (await fetch('data/Base.ep')).text()
-    const POINTS = parseToArrayOfObject(POINTSTextData)
-
-    const LINESTextData = await (await fetch('data/Base.svdb')).text()
-    const LINES = parseToArrayOfObject(LINESTextData)
-
-    const CONTOURSTextData = await (await fetch('data/Base.epts')).text()
-    const CONTOURS = reduceContour(parseToArrayOfObject(CONTOURSTextData))
-
-    const GREENZONESTextData = await (await fetch('data/Зеленая зона.elyr')).text()
-    const GREENZONES = parseToArrayOfObject(GREENZONESTextData)
-
-    const WATERTextData = await (await fetch('data/Реки и водоемы.elyr')).text()
-    const WATER = parseToArrayOfObject(WATERTextData)
-
-    const BUILDINGSTextData = await (await fetch('data/Жилая застройка.elyr')).text()
-    const BUILDINGS = parseToArrayOfObject(BUILDINGSTextData)
-
-    const RAILWAYSTextData = await (await fetch('data/Железные дороги.elyr')).text()
-    const RAILWAYS = parseToArrayOfObject(RAILWAYSTextData)
-
+        const POINTSTextData = await (await fetch('data/Base.ep')).text()
+        POINTS = parseToArrayOfObject(POINTSTextData)
     
+        const LINESTextData = await (await fetch('data/Base.svdb')).text()
+        LINES = parseToArrayOfObject(LINESTextData)
+    
+        const CONTOURSTextData = await (await fetch('data/Base.epts')).text()
+        CONTOURS = reduceContour(parseToArrayOfObject(CONTOURSTextData))
+    
+        const GREENZONESTextData = await (await fetch('data/Зеленая зона.elyr')).text()
+        GREENZONES = parseToArrayOfObject(GREENZONESTextData)
+    
+        const WATERTextData = await (await fetch('data/Реки и водоемы.elyr')).text()
+        WATER = parseToArrayOfObject(WATERTextData)
+    
+        const BUILDINGSTextData = await (await fetch('data/Жилая застройка.elyr')).text()
+        BUILDINGS = parseToArrayOfObject(BUILDINGSTextData)
+    
+        const RAILWAYSTextData = await (await fetch('data/Железные дороги.elyr')).text()
+        RAILWAYS = parseToArrayOfObject(RAILWAYSTextData)
+
+}
+
+
+const drawMap = () => {
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
     drawContours(GREENZONES, CONTOURS, '#CAE5B3', '#D4F2BB')
     drawContours(WATER, CONTOURS, '#B8DFF5')
     drawContours(BUILDINGS, CONTOURS, '#E8E8E5', '#F6F6F3')
     drawContours(RAILWAYS, CONTOURS, '#7C6657', '#7C6657', 0.5)
     drawContours(LINES, CONTOURS, '#696969', '#696969', 1)
+
+}
+
+const zoomInOut = (mode) => {
+
+    switch(mode){
+        case 'in': 
+            SCALE += 0.01
+            break;
+        case 'out':
+            SCALE -= 0.01
+            break;
+    }
+
+    draw.scale = SCALE
+    
+    drawMap();
+
+}
+
+const move = (mode) => {
+
+    switch(mode){
+        case 'top': 
+            TOPOFFSET -= 1000
+            break;
+        case 'bottom': 
+            TOPOFFSET += 1000
+            break;
+        case 'left':
+            LEFTOFFSET -= 1000
+            break;
+        case 'right':
+            LEFTOFFSET += 1000
+            break;
+    }
+
+    draw.topOffset = TOPOFFSET
+    draw.leftOffset = LEFTOFFSET
+
+    drawMap();
+
+}
+
+const   zoomInButton = document.getElementById("zoom-in"),
+        zoomOutButton = document.getElementById("zoom-out")
+        moveTopButton = document.getElementById("move-top")
+        moveBottomButton = document.getElementById("move-bottom")
+        moveLeftButton = document.getElementById("move-left")
+        moveRightButton = document.getElementById("move-right")
+    
+zoomInButton.addEventListener("click", () => zoomInOut('in'))
+zoomOutButton.addEventListener("click", () => zoomInOut('out'))
+
+canvas.addEventListener("wheel", (e) => e.deltaY < 0 ? zoomInOut('in') : zoomInOut('out') );
+
+moveTopButton .addEventListener("click", () => move('top'))
+moveBottomButton.addEventListener("click", () => move('bottom'))
+moveLeftButton .addEventListener("click", () => move('left'))
+moveRightButton.addEventListener("click", () => move('right'))
+
+let isMouseDown = false
+let offsetBeforeMouseUp = [0, 0]
+
+canvas.addEventListener('mousedown', (e) => {
+    isMouseDown  = true
+
+    
+
+    offsetBeforeMouseUp = [e.clientX, e.clientY]
+});
+
+canvas.addEventListener('mouseup', (e) => {
+    isMouseDown = false
+
+    document.body.style.cursor = 'default'
+            
+    const [x, y] = offsetBeforeMouseUp
+
+    if(Math.abs(e.clientX-x) > 40 || Math.abs(e.clientY-y) > 40){
+
+        LEFTOFFSET += (e.clientX-x)/SCALE
+        TOPOFFSET += (e.clientY-y)/SCALE
+
+        draw.topOffset = TOPOFFSET
+        draw.leftOffset = LEFTOFFSET
+
+        drawMap();
+    
+    }
+
+});
+
+
+canvas.addEventListener('mousemove', function(e) {
+
+    if(isMouseDown){
+
+        // const [x, y] = offsetBeforeMouseUp
+
+        // if(((e.clientX-x) != 0 && Math.abs(e.clientX-x)%10 === 0) || ((e.clientY-y) != 0 && Math.abs(e.clientY-y)%10 === 0)){
+    
+        //     LEFTOFFSET += (e.clientX-x)/SCALE
+        //     TOPOFFSET += (e.clientY-y)/SCALE
+    
+        //     draw.topOffset = TOPOFFSET
+        //     draw.leftOffset = LEFTOFFSET
+    
+        //     drawMap();
+        
+        // }
+
+    }
+
+})
+
+const start = async () => {
+
+
+    await setGlobalData();
+
+    draw = new Draw(ctx, { scale: SCALE, topOffset: TOPOFFSET, leftOffset: LEFTOFFSET })
+    
+    draw.gitHubPages = true
+
+    drawMap();
+  
 
     //Библиотека для поиска пути на взешенном графе
     //https://habr.com/ru/post/338440/
@@ -196,17 +342,9 @@ const start = async () => {
     const buildWayButton = document.getElementById("build-way")
     buildWayButton.addEventListener("click", function(e){
         buildWayMode = true
+        document.body.style.cursor = 'crosshair'
     })
 
-    canvas.addEventListener("mouseover", function(e) {
-
-        if(buildWayMode){
-            document.body.style.cursor = 'crosshair'
-        }else{
-            document.body.style.cursor = 'grab'
-        }
-
-    })
 
     canvas.addEventListener("click", function(e) {
 
@@ -216,8 +354,8 @@ const start = async () => {
 
             const rect = e.target.getBoundingClientRect();
 
-            const mousePosX = (e.clientX-rect.left)/0.05; 
-            const mousePosY = (40500-((e.clientY-rect.top)/0.05)) ;
+            const mousePosX = ((e.clientX-rect.left)/SCALE)-LEFTOFFSET; 
+            const mousePosY = (TOPOFFSET-((e.clientY-rect.top)/SCALE)) ;
 
             let minLength = 100000
             let findedPoint = null
@@ -252,7 +390,7 @@ const start = async () => {
                 pointOneId = undefined
                 pointTwoId = undefined
                 buildWayMode = false
-                document.body.style.cursor = 'grab'
+                document.body.style.cursor = 'default'
 
             }
 

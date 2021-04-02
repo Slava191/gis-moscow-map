@@ -6,11 +6,13 @@ module.exports = class {
     
         this.scale = options.scale || 0.05
         this.topOffset = options.topOffset || 40500
+        this.leftOffset = options.leftOffset || 0
+        this.gitHubPages = options.gitHubPages || false
 
     }
 
     transformX(x){
-        return this.scale*x
+        return this.scale*(this.leftOffset+x)
     }
 
     transformY(y){
@@ -70,10 +72,19 @@ module.exports = class {
         if(type === 3){
 
             for(let i = 1; i < arrOfPoints.length-1; i++){
+
                 this.ctx.lineTo(
                     this.transformX(arrOfPoints[i].x), 
                     this.transformY(arrOfPoints[i].y)
                 );
+
+                if(this.gitHubPages){
+                    this.ctx.moveTo(
+                        this.transformX(arrOfPoints[i].x), 
+                        this.transformY(arrOfPoints[i].y)
+                    ); 
+                }
+
             }
 
             this.ctx.lineTo(
@@ -97,6 +108,14 @@ module.exports = class {
                     this.transformX(arrOfPoints[i].x), 
                     this.transformY(arrOfPoints[i].y)
                 );
+
+                if(this.gitHubPages){
+                    this.ctx.moveTo(
+                        this.transformX(arrOfPoints[i].x), 
+                        this.transformY(arrOfPoints[i].y)
+                    ); 
+                }
+
             }
 
             this.ctx.strokeStyle = color;

@@ -1,6 +1,35 @@
 html, body{
     margin: 0;
     padding: 0;
+    overflow:  hidden;
+}
+
+button{
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    padding: 6px 10px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.button-group{
+    text-align: center;
+    position: fixed;
+    padding: 10px;
+    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+    margin:10px;
+    background-color: white;
+    border-radius: 10px;
+}
+
+table{
+    margin-left: auto;
+    margin-right: auto;
 }
 
 #canvas{

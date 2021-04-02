@@ -9,7 +9,34 @@
     
 </head>
 <body>
-    <button id="build-way">Построить маршрут</button><br>
+    <div class="button-group">
+        <button id="build-way">Построить маршрут</button>
+
+        <h4>Масштаб</h4>
+
+        <button id="zoom-in">+</button>
+        <button id="zoom-out">-</button>
+
+        <h4>Перемещение</h4>
+
+        <table>
+            <tr>
+                <td></td><td><button id="move-top">&#8593;</button></td><td></td>
+            </tr>
+            <tr>
+                <td><button id="move-left">&#8592;</button></td><td></td><td><button id="move-right">&#8594;</button></td>
+            </tr>
+            <tr>
+                <td></td><td><button id="move-bottom">&#8595;</button></td><td></td>
+            </tr>
+        </table>
+
+        
+        
+        
+        
+    </div>
+   
     <canvas id="canvas"></canvas>
     <script src="dist/main.bundle.js"></script>
 </body>
