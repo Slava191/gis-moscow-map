@@ -266,7 +266,7 @@ const start = async () => {
 
     draw = new Draw(ctx, { scale: SCALE, topOffset: TOPOFFSET, leftOffset: LEFTOFFSET })
     
-    draw.gitHubPages = true
+    //draw.gitHubPages = true
 
     drawMap();
   
